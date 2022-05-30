@@ -1,3 +1,4 @@
+import { TicketCratedPublisher } from './events/ticket-created-publisher';
 import nats from 'node-nats-streaming';
 
 console.clear();
@@ -7,16 +8,14 @@ const client = nats.connect('ticketing', 'abc', {
 });
 
 // @ts-ignore
-client.on('connect', () => {
+client.on('connect', async () => {
   console.log('connected to nats');
 
-  const data = JSON.stringify({
-    id: '123',
-    title: 'concert',
-    price: 20,
-  });
+  const publisher = new TicketCratedPublisher(client);
 
-  client.publish('ticket:created', data, () => {
-    console.log('event published!');
+  await publisher.publish({
+    id: 'argh',
+    title: 'dinner',
+    price: 40,
   });
 });
