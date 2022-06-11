@@ -1,3 +1,4 @@
+import { natsWrapper } from './../../nats-wrapper';
 import mongoose from 'mongoose';
 import request from 'supertest';
 
@@ -100,4 +101,28 @@ it('updates the ticket provided valid inputs', async () => {
 
   expect(ticketResponse.body.title).toBe(newTitle);
   expect(ticketResponse.body.price).toBe(newPrice);
+});
+
+it('publishes an event', async () => {
+  const cookie = global.signin();
+  const title = 'concert';
+  const price = 20;
+  const newTitle = 'new title';
+  const newPrice = 30;
+
+  const response = await request(app)
+    .post('/api/tickets')
+    .set('Cookie', cookie)
+    .send({ title, price });
+
+  await request(app)
+    .put(`/api/tickets/${response.body.id}`)
+    .set('Cookie', cookie)
+    .send({
+      title: newTitle,
+      price: newPrice,
+    })
+    .expect(200);
+
+  expect(natsWrapper.client.publish).toHaveBeenCalled();
 });
