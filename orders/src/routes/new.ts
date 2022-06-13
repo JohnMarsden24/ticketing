@@ -1,3 +1,4 @@
+import { OrderCreatedPublisher } from './../events/publishers/order-created-publisher';
 import { natsWrapper } from './../nats-wrapper';
 import {
   requireAuth,
@@ -48,12 +49,16 @@ router.post(
 
     await order.save();
 
-    // new TicketCreatedPublisher(natsWrapper.client).publish({
-    //   id: ticket.id,
-    //   title: ticket.title,
-    //   price: ticket.price,
-    //   userId: ticket.userId,
-    // });
+    new OrderCreatedPublisher(natsWrapper.client).publish({
+      id: order.id,
+      status: order.status,
+      userId: order.userId,
+      expiresAt: order.expiresAt.toISOString(),
+      ticket: {
+        id: ticket.id,
+        price: ticket.price,
+      },
+    });
 
     res.status(201).send(order);
   }
