@@ -5,6 +5,7 @@ import {
   validateRequest,
   NotFoundError,
   NoAuthorizedError,
+  BadRequestError,
 } from '@jm24tickets/common';
 import { body } from 'express-validator';
 import express, { Request, Response } from 'express';
@@ -31,6 +32,10 @@ router.put(
       throw new NotFoundError();
     }
 
+    if (ticket.orderId) {
+      throw new BadRequestError('Cannot edit a reserved ticket');
+    }
+
     if (ticket.userId !== req.currentUser!.id) {
       throw new NoAuthorizedError();
     }
@@ -43,6 +48,7 @@ router.put(
 
     new TicketUpdatedPublisher(natsWrapper.client).publish({
       id: ticket.id,
+      version: ticket.version,
       title: ticket.title,
       price: ticket.price,
       userId: ticket.userId,
