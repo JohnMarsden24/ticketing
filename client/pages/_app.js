@@ -4,23 +4,32 @@ import App from 'next/app';
 import Header from '../components/header';
 import axios from 'axios';
 
-function AppComponent({ Component, pageProps, data }) {
+function AppComponent({ Component, pageProps, currentUser }) {
   return (
     <>
-      <Header currentUser={data?.currentUser} />
-      <Component {...pageProps} />
+      <Header currentUser={currentUser} />
+      <div className="container">
+        <Component currentUser={currentUser} {...pageProps} />
+      </div>
     </>
   );
 }
 
 AppComponent.getInitialProps = async (appContext) => {
-  const appProps = await App.getInitialProps(appContext);
-
   const client = buildClient(appContext.ctx.req);
 
-  const response = await client.get('/api/users/currentuser');
+  const { data } = await client.get('/api/users/currentuser');
 
-  return { data: response?.data, ...appProps };
+  let pageProps = {};
+  if (appContext.Component.getInitialProps) {
+    pageProps = await appContext.Component.getInitialProps(
+      appContext,
+      client,
+      data.currentUser
+    );
+  }
+
+  return { pageProps, ...data };
 };
 
 export default AppComponent;
