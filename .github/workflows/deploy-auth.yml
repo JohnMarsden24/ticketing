@@ -12,9 +12,14 @@ jobs:
     runs-on: unbuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: cd auth && docker build -t johnmarsden24/auth .
       - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      - run: cd auth && docker build -t johnmarsden24/auth .
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       - run: docker push johnmarsden24/auth
+      - uses: digitalocen/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - run: doctl kubernetes clister kubeconfig save ticketing
+      - run: kubectl rollout restart deployment auth-depl
