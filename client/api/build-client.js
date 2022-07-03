@@ -10,8 +10,7 @@ const buildClient = (req) => {
     });
   } else {
     return axios.create({
-      baseURL:
-        'http://ingress-nginx-controller.ingress-nginx.svc.cluster.local',
+      baseURL: 'http://www.ticketing-app.me/',
       headers: req.headers,
     });
   }
